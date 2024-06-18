@@ -1,0 +1,157 @@
+
+```{r}
+# Install necessary R packages
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("vegan")) install.packages("vegan")
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("RColorBrewer")) install.packages("RColorBrewer")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("broom")) install.packages("broom")
+```
+
+```{r}
+# Load necessary R packages into the R session
+library(tidyverse)
+library(vegan)
+library(ggplot2)
+library(RColorBrewer)
+```
+
+```{r}
+# Load data
+data <- read.csv('./data/transposed_input_to_lefse_after_filter_0.1%_non_metadata.csv')
+data
+```
+
+```{r}
+# Filter Species-Level Data
+species_data <- data[, grepl("s__", colnames(data))]
+
+# Compute Bray-Curtis Distance
+bray_curtis <- vegdist(species_data, method = "bray")
+
+# Principal Coordinates Analysis (PCoA)
+pcoa_results <- cmdscale(bray_curtis, eig = TRUE, k = 2) 
+
+# Transform PCoA Results for Plotting
+pcoa_df <- as.data.frame(pcoa_results$points)
+names(pcoa_df) <- c("PC1", "PC2")
+pcoa_df$disease <- factor(data$disease, levels = c("0", "1"), labels = c("HC", "CRC")) 
+
+# Plotting with ggplot2
+ggplot(pcoa_df, aes(x = PC1, y = PC2, color = disease)) +
+    geom_point(alpha = 0.8) +
+    stat_ellipse(type = "t", linetype = 2) + # Ellipses around groups, using t-distribution
+    theme_minimal() +
+    labs(title = "PCoA of Microbiome Data at Species Level",
+         x = "Principal Component 1",
+         y = "Principal Component 2") +
+    scale_color_manual(values = c("HC" = "#4D4D9F", "CRC" = "#FB8C62")) +
+    theme(
+        plot.title = element_text(size = 16, hjust = 0.5, face = "bold"),
+        axis.title.x = element_text(size = 12, face = "bold"),
+        axis.title.y = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 12, face = "bold")
+    )
+
+```
+
+
+```{r}
+# Installing and Loading Packages
+if (!require(vegan)) {
+    install.packages("vegan", dependencies = TRUE)
+    library(vegan)
+}
+if (!require(ggplot2)) {
+    install.packages("ggplot2", dependencies = TRUE)
+    library(ggplot2)
+}
+
+# Data Loading
+data <- read.csv("./data/transposed_input_to_lefse_after_filter_0.1%_non_metadata.csv", row.names=1) 
+
+# Data Filtering for Species-Level Data
+species_data <- data[, grepl("s__", colnames(data))]
+
+# Diversity Indices Calculation
+shannon_diversity <- diversity(species_data, index="shannon") # Shannon
+simpson_diversity <- diversity(species_data, index="simpson") # Simpson
+
+# Data Preparation for Plotting
+diversity_data <- data.frame(Shannon=shannon_diversity, Simpson=simpson_diversity)
+diversity_data$Disease <- factor(data$disease, levels=c(0, 1), labels=c("HC", "CRC"))
+
+# Visualization with ggplot2
+ggplot(diversity_data, aes(x = Disease, y = Shannon, fill = Disease)) +
+    geom_boxplot() +
+    scale_fill_manual(values = c("HC" = "#4D4D9F", "CRC" = "#FB8C62")) +  
+    labs(title = "Shannon Diversity Index at Species Level", x = "Disease Status", y = "Shannon Index") +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(size = 16, hjust = 0.5, face = "bold"),
+        axis.title.x = element_text(size = 12, face = "bold"),
+        axis.title.y = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 12, face = "bold")
+    )
+
+ggplot(diversity_data, aes(x = Disease, y = Simpson, fill = Disease)) +
+    geom_boxplot() +
+    scale_fill_manual(values = c("HC" = "#4D4D9F", "CRC" = "#FB8C62")) +  
+    labs(title = "Simpson Diversity Index at Species Level", x = "Disease Status", y = "Simpson Index") +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(size = 16, hjust = 0.5, face = "bold"),
+        axis.title.x = element_text(size = 12, face = "bold"),
+        axis.title.y = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 12, face = "bold")
+    )
+
+```
+
+```{r}
+# Installing and Loading Packages
+if (!require(vegan)) {
+    install.packages("vegan", dependencies = TRUE)
+    library(vegan)
+}
+if (!require(ggplot2)) {
+    install.packages("ggplot2", dependencies = TRUE)
+    library(ggplot2)
+}
+
+# Data Loading
+data <- read.csv("./data/transposed_input_to_lefse_after_filter_0.1%_non_metadata.csv", row.names=1) 
+
+# Filtering Species-Level Data
+species_data <- data[, grepl("s__", colnames(data))]
+
+# Calculating Observed Species Number
+observed_species <- specnumber(species_data)
+
+# Data Frame Creation and Disease Labeling
+diversity_data <- data.frame(ObservedSpecies=observed_species, Disease=factor(data$disease, levels=c(0, 1), labels=c("HC", "CRC")))
+
+# Visualization with ggplot2
+ggplot(diversity_data, aes(x=Disease, y=ObservedSpecies, fill=Disease)) +
+    geom_boxplot() +
+    scale_fill_manual(values = c("HC" = "#4D4D9F", "CRC" = "#FB8C62")) +  
+    labs(title="Observed Number of Species by Disease Status", x="Disease Status", y="Observed Number of Species") +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(size = 16, hjust = 0.5, face = "bold"),
+        axis.title.x = element_text(size = 12, face = "bold"),
+        axis.title.y = element_text(size = 12, face = "bold"),
+        axis.text = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 12, face = "bold")
+    )
+
+```
+
